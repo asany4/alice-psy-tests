@@ -4,6 +4,7 @@
   "description": "Навык психологияеских тестов для Яндекс Алисы",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -27,5 +28,8 @@
   "bugs": {
     "url": "https://github.com/asany4/alice-psy-tests/issues"
   },
-  "homepage": "https://github.com/asany4/alice-psy-tests#readme"
+  "homepage": "https://github.com/asany4/alice-psy-tests#readme",
+  "dependencies": {
+    "yandex-dialogs-sdk": "^2.3.0"
+  }
 }
