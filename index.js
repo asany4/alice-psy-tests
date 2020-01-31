@@ -2,7 +2,7 @@ const { Alice, Reply, Markup } = require('yandex-dialogs-sdk')
 const alice = new Alice();
 
 const M = Markup;
-alice.command('', async ctx => Reply.text('Look, what i can!'));
+alice.command('', async ctx => Reply.text('Пройдите психологические тесты. Они помогут познать себя лучше. Пока что я не умею проводить тесты, но совсем скоро меня научат. Возвращайтесь немного позже!'));
 alice.command('Give a piece of advice', async ctx =>
   Reply.text('Make const not var'),
 );
@@ -16,7 +16,7 @@ alice.command(
   },
 );
 alice.command(/(https?:\/\/[^\s]+)/g, ctx => Reply.text('Matched a link!'));
-alice.any(async ctx => Reply.text(`I don't understand`));
+alice.any(async ctx => Reply.text(`Я не понимаю`));
 
 const server = alice.listen(process.env.PORT || 3001, '/');
 
