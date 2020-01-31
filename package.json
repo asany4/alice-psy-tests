@@ -1,0 +1,31 @@
+{
+  "name": "alice-psy-tests",
+  "version": "0.0.1",
+  "description": "Навык психологияеских тестов для Яндекс Алисы",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asany4/alice-psy-tests.git"
+  },
+  "keywords": [
+    "Алиса",
+    "навык",
+    "Яндекс",
+    "психология",
+    "тест",
+    "alice",
+    "skill",
+    "Yandex",
+    "psychology",
+    "test"
+  ],
+  "author": "Aleksandr Tkachenko",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/asany4/alice-psy-tests/issues"
+  },
+  "homepage": "https://github.com/asany4/alice-psy-tests#readme"
+}
