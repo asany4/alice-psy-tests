@@ -17,4 +17,16 @@ alice.command(
 );
 alice.command(/(https?:\/\/[^\s]+)/g, ctx => Reply.text('Matched a link!'));
 alice.any(async ctx => Reply.text(`I don't understand`));
+
 const server = alice.listen(process.env.PORT || 3001, '/');
+
+// Учим сервер отвечать 200 OK на GET запрос в корень
+const originalHandler = server._handleRequest;
+server._handleRequest = function(request, response) {
+  if (request.method === 'GET' && request.url === server._webhookUrl) {
+    response.statusCode = 200;
+    return response.end('OK');    
+  }
+
+  return originalHandler.apply(server, arguments);
+}
