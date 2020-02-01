@@ -64,7 +64,7 @@ const sayResult = function(testData) {
 
 const questions = [
     {
-        text: 'Назовите свой пол.',
+        text: 'Вы мужчина или женщина?',
         answers: [
             {
                 intent: ['мужской', 'мужчина', 'парень', 'мальчик', 'мужик'],
@@ -86,7 +86,7 @@ const questions = [
                 skipNext: 1
             },
             {
-                intent: intents.disagree,
+                intent: intents.disagree.concat('меньше'),
                 value: 0,
             }
         ]
@@ -101,19 +101,6 @@ const questions = [
             {
                 intent: intents.disagree,
                 value: 0,
-            }
-        ]
-    },
-    {
-        text: 'Ваша работа связана больше с физическим или умственным трудом?',
-        answers: [
-            {
-                intent: ['физическим', 'первое'],
-                value: -3,
-            },
-            {
-                intent: ['умственным', 'второе'],
-                value: 3,
             }
         ]
     },
@@ -162,8 +149,6 @@ const questions = [
             }
         ]
     },
-
-
     {
         text: 'Вы курите?',
         answers: [
@@ -211,26 +196,39 @@ const questions = [
         ]
     },
     {
-        text: 'Сколько раз вы пили алкоголь на прошлой неделе?',
+        text: 'Ваша работа связана больше с физическим или умственным трудом?',
         answers: [
             {
-                intent: function(ctx) {
-                    const n = getNumber(ctx);
-                    return n && 1 < n;
-                },
-                value: -1,
-                skipNext: 0
+                intent: ['физическим', 'физический', 'физически', 'первое'],
+                value: -3,
             },
             {
-                intent: function(ctx) {
-                    const n = getNumber(ctx);
-                    return n && n <= 1;
-                },
-                value: 0,
-                skipNext: 0
+                intent: ['умственным', 'умственный', 'умственно', 'второе'],
+                value: 3,
             }
         ]
-    }
+    },
+    // {
+    //     text: 'Сколько раз вы пили алкоголь на прошлой неделе?',
+    //     answers: [
+    //         {
+    //             intent: function(ctx) {
+    //                 const n = getNumber(ctx);
+    //                 return n && 1 < n;
+    //             },
+    //             value: -1,
+    //             skipNext: 0
+    //         },
+    //         {
+    //             intent: function(ctx) {
+    //                 const n = getNumber(ctx);
+    //                 return n && n <= 1;
+    //             },
+    //             value: 0,
+    //             skipNext: 0
+    //         }
+    //     ]
+    // }
 ];
 
 module.exports.AgeTest = function(ctx, session) {
