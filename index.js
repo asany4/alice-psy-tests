@@ -7,8 +7,6 @@ const sessions = {};
 
 const M = Markup;
 
-const sessions = {};
-
 alice.command('', async ctx => {
   const sessionId = ctx.sessionId;
 
@@ -43,7 +41,13 @@ alice.any(async ctx => {
           state: 'test'
         }
 
-        text = 'Начнем тест';
+        let result = AgeTest(ctx, currentSession);
+
+        text = `Начинаем! ${result.text}`;
+
+        if (result.tts) {
+          EXTRA_PARAMS.tts = `Начинаем! ${result.tts}`;
+        }
       }
       
       if (ctx.originalUtterance.indexOf('расскажи информацию') !== -1) {
@@ -88,12 +92,54 @@ alice.any(async ctx => {
         text = 'Тогда все-таки начинаем?';
       };
       break;
-    case 'test':
-      sessions[sessionId] = {
-          state: 'entry'
-      }
+    case 'afterTest':
+      if (ctx.originalUtterance.indexOf('завершить') !== -1) {
+        sessions[sessionId] = undefined;
 
-      text = 'Вы вышли из теста';
+        EXTRA_PARAMS.end_session = true;
+        text = 'Заходите еще!';
+      };
+
+      if (ctx.originalUtterance.indexOf('еще раз') !== -1) {
+        sessions[sessionId] = {
+          state: 'test'
+        }
+
+        let result = AgeTest(ctx, currentSession);
+
+        text = `Начинаем! ${result.text}`;
+
+        if (result.tts) {
+          EXTRA_PARAMS.tts = `Начинаем! ${result.tts}`;
+        }
+      };
+      break;
+    case 'test':
+      try {
+        let result = AgeTest(ctx, currentSession);
+
+        text = result.text;
+
+        if (result.tts) {
+          EXTRA_PARAMS.tts = result.tts;
+        }
+
+        if (result.endTest) {
+          sessions[sessionId] = {
+            state: 'afterTest'
+          }
+
+          text += ' Хотите попробовать еще раз или завершить навык?';
+          
+          if (EXTRA_PARAMS.tts) {
+            EXTRA_PARAMS.tts += ' Хотите попробовать еще раз или завершить навык?';
+          }
+        }
+
+      } catch(e) {
+          console.error(e);
+          text = 'Произошла ошибка в навыке. Попробуйте начать тест снова';
+      };
       break;
   }
 
