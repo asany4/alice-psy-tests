@@ -81,7 +81,7 @@ const questions = [
         text: 'В вашем городе проживает больше миллиона человек?',
         answers: [
             {
-                intent: intents.agree,
+                intent: intents.agree.concat('больше'),
                 value: -2,
                 skipNext: 1
             },
@@ -95,11 +95,11 @@ const questions = [
         text: 'Может быть, меньше десяти тысяч?',
         answers: [
             {
-                intent: intents.agree,
+                intent: intents.agree.concat('меньше'),
                 value: 0,
             },
             {
-                intent: intents.disagree,
+                intent: intents.disagree.concat('больше'),
                 value: 0,
             }
         ]
