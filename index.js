@@ -6,32 +6,98 @@ const alice = new Alice();
 const sessions = {};
 
 const M = Markup;
-alice.command('', async ctx => Reply.text('Пройдите тест "Сколько я проживу". Я буду задавать вопросы, и в зависимости от ваших ответов я посчитаю, сколько в среднем живут люди с таким же образом жизни. Хотите запустить тест?'));
-alice.command(['запустить', 'начать'], async ctx => Reply.text('Тут должен быть первый вопрос'));
-// alice.command('Give a piece of advice', async ctx =>
-//   Reply.text('Make const not var'),
-// );
-// alice.command(
-//   ['What is trending now?', 'Watch films', 'Whats in the theatre?'],
-//   ctx => {
-//     return {
-//       text: `What about 50 Angry Men?`,
-//       buttons: [M.button('Buy ticket'), M.button('What else?')],
-//     };
-//   },
-// );
-// alice.command(/(https?:\/\/[^\s]+)/g, ctx => Reply.text('Matched a link!'));
-// alice.any(async ctx => Reply.text(`Я не понимаю`));
+
+const sessions = {};
+
+alice.command('', async ctx => {
+  const sessionId = ctx.sessionId;
+
+  sessions[sessionId] = {
+    state: 'entry'
+  };
+  
+  return Reply.text('Привет. Это тест Сколько лет осталось жить. Хотите начать?');
+});
+
+alice.command(
+  ['что ты умеешь', 'помощь', 'расскажи что делать', 'как пользоваться'],
+  ctx => {
+    return {
+      text: `Этот навык позволяет вам узнать примерную длину жизни. И т.д. и т.п.`
+    };
+  },
+);
 
 alice.any(async ctx => {
-  sessions[ctx.sessionId] = sessions[ctx.sessionId] || {};
-  try {
-      answer = AgeTest(ctx, sessions[ctx.sessionId]);
-  } catch(e) {
-      console.error(e);
-      answer = 'Произошла ошибка в навыке. Попробуйте начать тест снова';
-  };
-  return Reply.text(answer);
+  const sessionId = ctx.sessionId;
+  const currentSession = sessions[sessionId];
+  const state = currentSession.state;
+
+  let text = 'Я вас не поняла';
+  const EXTRA_PARAMS = {};
+
+  switch (state) {
+    case 'entry':
+      if (ctx.originalUtterance.indexOf('начни тест') !== -1) {
+        sessions[sessionId] = {
+          state: 'test'
+        }
+
+        text = 'Начнем тест';
+      }
+      
+      if (ctx.originalUtterance.indexOf('расскажи информацию') !== -1) {
+        sessions[sessionId] = {
+          state: 'afterInfo'
+        }
+
+        text = 'Отвечая на вопросы вы узнаете сколько лет вам осталось жить. Ну что, начинаем?';
+      };
+      break;
+    case 'afterInfo':
+      if (ctx.originalUtterance.indexOf('да') !== -1) {
+        sessions[sessionId] = {
+          state: 'test'
+        }
+
+        text = 'Тогда начнем! Первый вопрос: сколько у вас котов?';
+      };
+
+      if (ctx.originalUtterance.indexOf('нет') !== -1) {
+        sessions[sessionId] = {
+          state: 'decideEndOrNot'
+        }
+
+        text = 'Вы хотите завершить навык?';
+      };
+      break;
+    // дурацкое название, надо подумать
+    case 'decideEndOrNot':
+      if (ctx.originalUtterance.indexOf('да') !== -1) {
+        sessions[sessionId] = undefined;
+
+        EXTRA_PARAMS.end_session = true;
+        text = 'Заходите еще!';
+      };
+
+      if (ctx.originalUtterance.indexOf('нет') !== -1) {
+        sessions[sessionId] = {
+          state: 'afterInfo'
+        }
+
+        text = 'Тогда все-таки начинаем?';
+      };
+      break;
+    case 'test':
+      sessions[sessionId] = {
+          state: 'entry'
+      }
+
+      text = 'Вы вышли из теста';
+      break;
+  }
+
+  return Reply.text(text, EXTRA_PARAMS);
 });
 
 const server = alice.listen(process.env.PORT || 3001, '/');
