@@ -140,12 +140,10 @@ const questions = [
             {
                 intent: intents.agree.concat('постоянно'),
                 value: -3,
-                postMessage: 'Зато не скучно!'
             },
             {
                 intent: intents.disagree.concat('иногда', 'бывает'),
                 value: 0,
-                postMessage: 'Как я вас понимаю…'
             }
         ]
     },
