@@ -1,6 +1,7 @@
+const START_AGE = 72;
 const intents = {
-    agree: ['да', 'конечно'],
-    disagree: ['нет']
+    agree: ['да', 'конечно', 'верно', 'разумеется', 'обязательно', 'естественно'],
+    disagree: ['нет', 'неверно']
 };
 
 const getNumber = ctx => {
@@ -40,7 +41,7 @@ const askQuestion = function(testData, questionIndex = 0, preText) {
 const sayResult = function(testData) {
     const lastNum = testData.result % 10;
     return {
-        text: `Люди с похожим образом жизни доживают в среднем до ${testData.result} лет`,
+        text: `Люди с похожим образом жизни доживают в среднем до ${testData.result} лет. Но вы будете жить вечно!`,
         endTest: true
     };
 };
@@ -62,6 +63,107 @@ const sayResult = function(testData) {
  */
 
 const questions = [
+    {
+        text: 'Назовите свой пол.',
+        answers: [
+            {
+                intent: ['мужской', 'мужчина', 'парень', 'мальчик', 'мужик'],
+                value: -3,
+            },
+            {
+                intent: ['женский', 'женщина', 'девушка', 'девочка', 'баба'],
+                value: 0,
+                postMessage: 'Я тоже!',
+            }
+        ]
+    },
+    {
+        text: 'В вашем городе проживает больше миллиона человек?',
+        answers: [
+            {
+                intent: intents.agree,
+                value: -2,
+                skipNext: 1
+            },
+            {
+                intent: intents.disagree,
+                value: 0,
+            }
+        ]
+    },
+    {
+        text: 'Может быть, меньше десяти тысяч?',
+        answers: [
+            {
+                intent: intents.agree,
+                value: 0,
+            },
+            {
+                intent: intents.disagree,
+                value: 0,
+            }
+        ]
+    },
+    {
+        text: 'Ваша работа связана больше с физическим или умственным трудом?',
+        answers: [
+            {
+                intent: ['физическим', 'первое'],
+                value: -3,
+            },
+            {
+                intent: ['умственным', 'второе'],
+                value: 3,
+            }
+        ]
+    },
+    {
+        text: 'Вы занимаетесь спортом хотябы три раза в неделю?',
+        answers: [
+            {
+                intent: intents.agree,
+                value: 3,
+                postMessage: 'Давайте заниматься вместе.'
+            },
+            {
+                intent: intents.disagree,
+                value: 0,
+                postMessage: 'А зря…'
+            }
+        ]
+    },
+    {
+        text: 'Вы состоите в браке?',
+        answers: [
+            {
+                intent: intents.agree,
+                value: 5,
+                postMessage: 'Зато не скучно!'
+            },
+            {
+                intent: intents.disagree,
+                value: 0,
+                postMessage: 'Как я вас понимаю…'
+            }
+        ]
+    },
+    {
+        text: 'Вы часто спите меньше семи часов в сутки?',
+        answers: [
+            {
+                intent: intents.agree.concat('постоянно'),
+                value: -3,
+                postMessage: 'Зато не скучно!'
+            },
+            {
+                intent: intents.disagree.concat('иногда', 'бывает'),
+                value: 0,
+                postMessage: 'Как я вас понимаю…'
+            }
+        ]
+    },
+
+
     {
         text: 'Вы курите?',
         answers: [
@@ -109,17 +211,22 @@ const questions = [
         ]
     },
     {
-        text: 'Вы пьете?',
+        text: 'Сколько раз вы пили алкоголь на прошлой неделе?',
         answers: [
             {
-                intent: intents.agree,
-                value: -2,
+                intent: function(ctx) {
+                    const n = getNumber(ctx);
+                    return n && 1 < n;
+                },
+                value: -1,
                 skipNext: 0
             },
             {
-                intent: intents.disagree,
+                intent: function(ctx) {
+                    const n = getNumber(ctx);
+                    return n && n <= 1;
+                },
                 value: 0,
-                postMessage: 'Я тоже.',
                 skipNext: 0
             }
         ]
@@ -132,7 +239,7 @@ module.exports.AgeTest = function(ctx, session) {
     const { lastQuestion } = testData;
 
     if (typeof lastQuestion === 'undefined') {
-        testData.result = 72;
+        testData.result = START_AGE;
         return askQuestion(testData, 0);
     } else if (questions[lastQuestion]) {
         const question = questions[lastQuestion];
@@ -151,7 +258,7 @@ module.exports.AgeTest = function(ctx, session) {
                 askQuestion(testData, nextQuestion, answer.postMessage);
         }
 
-        return askQuestion(testData, lastQuestion, 'Я не понял.');
+        return askQuestion(testData, lastQuestion, 'Я не поняла.');
     } else {
         return askQuestion(testData, 0, 'Я ничего не понимаю. Придется начать сначала.');
     }
