@@ -2,10 +2,20 @@ const { Alice, Reply, Markup } = require('yandex-dialogs-sdk')
 const { AgeTest } = require('./age');
 
 const alice = new Alice();
+const intents = {
+  positive: ['да', 'начни', 'давай', 'поехали', 'ага', 'иногда'],
+  negative: ['нет', 'не хочу', 'не надо', 'не начинай', 'неа'],
+  endDialog: ['завершить', 'заверши', 'выключись', 'закончить'],
+  repeatDialog: ['еще раз', 'еще', 'заново', 'повтори']
+};
 
 const sessions = {};
 
 const M = Markup;
+
+function isIntentCorrect(request, intents) {
+   return intents.some(intent => request.toLowerCase().indexOf(intent.toLowerCase()) !== -1);
+}
 
 alice.command('', async ctx => {
   const sessionId = ctx.sessionId;
@@ -14,34 +24,35 @@ alice.command('', async ctx => {
     state: 'entry'
   };
   
-  return Reply.text('Привет. Это тест Сколько лет осталось жить. Хотите начать?');
+  return Reply.text('Привет. Это тест cколько лет осталось жить. Хотите начать?');
 });
 
 alice.command(
   ['что ты умеешь', 'помощь', 'расскажи что делать', 'как пользоваться'],
   ctx => {
     return {
-      text: `Этот навык позволяет вам узнать примерную длину жизни. И т.д. и т.п.`
+      text: `Средняя продолжительность жизни постоянно растет. Но каждого, все равно, интересует, сколько же он проживет. Данный тест составлен американскими медиками. Советую Вам ответить наиболее искренне, не кривя душой. Особо следует обратить внимание на то, что результаты этого теста не являются окончательным "диагнозом". Может быть, вам необходимо в чем-то изменить свой образ жизни.
+      Возраст не имеет значения. Все равно, 20 Вам или 50. Зато чем раньше Вы откажетесь от вредных привычек, тем лучше.`
     };
   },
 );
 
 alice.any(async ctx => {
   const sessionId = ctx.sessionId;
-  const currentSession = sessions[sessionId];
-  const state = currentSession.state;
+  const state = sessions[sessionId].state;
+  const requestText = ctx.originalUtterance;
 
   let text = 'Я вас не поняла';
   const EXTRA_PARAMS = {};
 
   switch (state) {
     case 'entry':
-      if (ctx.originalUtterance.indexOf('начни тест') !== -1) {
+      if (isIntentCorrect(requestText, intents.positive)) {
         sessions[sessionId] = {
           state: 'test'
         }
 
-        let result = AgeTest(ctx, currentSession);
+        let result = AgeTest(ctx, sessions[sessionId]);
 
         text = `Начинаем! ${result.text}`;
 
@@ -50,24 +61,29 @@ alice.any(async ctx => {
         }
       }
       
-      if (ctx.originalUtterance.indexOf('расскажи информацию') !== -1) {
-        sessions[sessionId] = {
-          state: 'afterInfo'
-        }
-
-        text = 'Отвечая на вопросы вы узнаете сколько лет вам осталось жить. Ну что, начинаем?';
+      if (isIntentCorrect(requestText, intents.negative)) {
+        text = `Я знаю точно наперед
+        Сегодня кто-нибудь умрет`;
       };
       break;
     case 'afterInfo':
-      if (ctx.originalUtterance.indexOf('да') !== -1) {
+      if (isIntentCorrect(requestText, intents.positive)) {
         sessions[sessionId] = {
           state: 'test'
         }
 
-        text = 'Тогда начнем! Первый вопрос: сколько у вас котов?';
+        let result = AgeTest(ctx, sessions[sessionId]);
+
+        text = `Начинаем! ${result.text}`;
+
+        if (result.tts) {
+          EXTRA_PARAMS.tts = `Начинаем! ${result.tts}`;
+        }
+
+        text = 'Тогда начнем! ${result.text}';
       };
 
-      if (ctx.originalUtterance.indexOf('нет') !== -1) {
+      if (isIntentCorrect(requestText, intents.negative)) {
         sessions[sessionId] = {
           state: 'decideEndOrNot'
         }
@@ -77,14 +93,14 @@ alice.any(async ctx => {
       break;
     // дурацкое название, надо подумать
     case 'decideEndOrNot':
-      if (ctx.originalUtterance.indexOf('да') !== -1) {
+      if (isIntentCorrect(requestText, intents.positive)) {
         sessions[sessionId] = undefined;
 
         EXTRA_PARAMS.end_session = true;
         text = 'Заходите еще!';
       };
 
-      if (ctx.originalUtterance.indexOf('нет') !== -1) {
+      if (isIntentCorrect(requestText, intents.negative)) {
         sessions[sessionId] = {
           state: 'afterInfo'
         }
@@ -93,19 +109,19 @@ alice.any(async ctx => {
       };
       break;
     case 'afterTest':
-      if (ctx.originalUtterance.indexOf('завершить') !== -1) {
+      if (isIntentCorrect(requestText, intents.endDialog)) {
         sessions[sessionId] = undefined;
 
         EXTRA_PARAMS.end_session = true;
         text = 'Заходите еще!';
       };
 
-      if (ctx.originalUtterance.indexOf('еще раз') !== -1) {
+      if (isIntentCorrect(requestText, intents.repeatDialog)) {
         sessions[sessionId] = {
           state: 'test'
         }
 
-        let result = AgeTest(ctx, currentSession);
+        let result = AgeTest(ctx, sessions[sessionId]);
 
         text = `Начинаем! ${result.text}`;
 
@@ -116,7 +132,7 @@ alice.any(async ctx => {
       break;
     case 'test':
       try {
-        let result = AgeTest(ctx, currentSession);
+        let result = AgeTest(ctx, sessions[sessionId]);
 
         text = result.text;
 
